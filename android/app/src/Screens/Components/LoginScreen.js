@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+import { useDispatch } from 'react-redux';
+import {loginSuccess} from '../../Slices/authSlice';
+import axios from 'axios';
+import Toast from 'react-native-toast-message';
 
 export default function LoginScreen({ navigation }) {  
   const [email, setEmail] = useState('');
@@ -9,6 +13,8 @@ export default function LoginScreen({ navigation }) {
   const [emailErrorMsg, setEmailErrorMsg] = useState('');
   const [pinErrorMsg, setPinErrorMsg] = useState('');
   const [showPin, setShowPin] = useState(true);
+  
+  const dispatch = useDispatch(); // Initialize the dispatch function
 
   const handleEmailChange = (masked) => {
     const filteredEmail = masked.replace(/[^a-zA-Z0-9@._-]/g, '');
@@ -32,7 +38,8 @@ export default function LoginScreen({ navigation }) {
   };
 
   const handlePinChange = (code) => {
-    const filteredPin = code.replace(/[^0-9]/g, '');
+    // Updated regex to allow numbers, alphabets, and special characters
+    const filteredPin = code.replace(/[^a-zA-Z0-9!@#$%^&*()_+[\]{};':"\\|,.<>/?`~\-]/g, '');
     if (filteredPin.length === 0) {
       setPin('');
       setPinErrorMsg('');
@@ -41,15 +48,49 @@ export default function LoginScreen({ navigation }) {
       setPinErrorMsg('');
     } else {
       setPin('');
-      setPinErrorMsg('PIN must be numeric.');
+      setPinErrorMsg('PIN must be alphanumeric or contain special characters.');
     }
   };
+  
 
-  const handleLogin = () => {
-    // Navigate to MutualFundsScreen upon pressing login without any validation
-    navigation.navigate('MutualFunds');
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post('https://api.getharvest.app/auth/login', {
+        email,
+        password: pin,
+      });
+  
+      console.log(response.data); // Log the entire response data
+  
+      if (response.data.access_token) { // Check for access_token instead of token
+        dispatch(loginSuccess(response.data.access_token)); // Save the token in Redux
+        Toast.show({
+          type: 'success',
+          text1: 'Login Successful',
+          text2: 'Welcome back!',
+          position: 'bottom',
+        });
+        navigation.navigate('MutualFunds'); // Navigate to MutualFundsScreen upon successful login
+      } else {
+        // setPinErrorMsg('Invalid login credentials');
+        Toast.show({
+          type: 'error',
+          text1: 'Login Failed',
+          text2: 'Invalid login credentials.',
+          position: 'bottom',
+        });
+      }
+    } catch (error) {
+      console.log('Error:', error.response ? error.response.data : error.message);
+      setPinErrorMsg('Login failed. Please try again.');
+      Toast.show({
+        type: 'error',
+        text1: 'Login Failed',
+        text2: 'Please check your credentials and try again.',
+        position: 'bottom',
+      });
+    }
   };
-
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -73,16 +114,17 @@ export default function LoginScreen({ navigation }) {
           {emailErrorMsg ? <Text style={styles.errorMsg}>{emailErrorMsg}</Text> : null}
 
           <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.inputWithIcon}
-              placeholder="Login pin"
-              placeholderTextColor="#9a9a9a"
-              secureTextEntry={showPin}
-              value={pin}
-              onChangeText={handlePinChange}
-              keyboardType="numeric"
-              color="#000"
-            />
+          <TextInput
+          style={styles.inputWithIcon}
+          placeholder="Login pin"
+          placeholderTextColor="#9a9a9a"
+          secureTextEntry={showPin}
+          value={pin}
+          onChangeText={handlePinChange}
+          keyboardType="default"  // Changed from "numeric" to "default"
+          color="#000"
+        />
+        
             <TouchableOpacity onPress={() => setShowPin(!showPin)}>
               <Ionicons name={showPin ? "eye-off" : "eye"} size={24} color="#9a9a9a" />
             </TouchableOpacity>
@@ -199,4 +241,3 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 });
-

@@ -12,11 +12,12 @@ const FundCard = ({ fund }) => (
             <Text style={styles.fundName}>{fund.name}</Text>
             <View style={styles.returnContainer}>
                 <Text style={styles.annualReturn}>Annual Return</Text>
-                <View style={[styles.returnBox, { backgroundColor: fund.returnColor === 'green' ? '#E6F4EA' : '#FDE8E8' }]}>
-                    <Text style={[styles.returnText, { color: fund.returnColor }]}>
-                        {fund.return}
-                    </Text>
-                </View>
+                <View style={[styles.returnBox, { backgroundColor: fund.last_year_return > 50 ? '#FFEBE6' : '#F6FEF9' }]}>
+                <Text style={[styles.returnText, { color: fund.last_year_return > 50 ? '#FF3301' : '#027A48' }]}>
+                    {fund.last_year_return > 50 ? '↓ -' : '↑ +'} {fund.last_year_return}%
+                </Text>
+            </View>
+            
             </View>
         </View>
         <TouchableOpacity style={styles.detailsButton}>
@@ -53,7 +54,7 @@ const styles = StyleSheet.create({
     fundName: {
         fontSize: 14,
         fontWeight: '500',
-
+fontFamily:'PublicSans-Bold' ,
         flex: 1,
         color: '#070A13',
     },
@@ -66,11 +67,12 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#667085',
         marginBottom: 4,
+        fontFamily:'PublicSans-Regular' ,
 
     },
     returnBox: {
         paddingVertical: 4,
-        paddingHorizontal: 8,
+        paddingHorizontal: 15,
         borderRadius: 5,
     },
     returnText: {

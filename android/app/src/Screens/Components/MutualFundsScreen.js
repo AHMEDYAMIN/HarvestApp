@@ -1,65 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Image, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Image, KeyboardAvoidingView, Platform, Keyboard, BackHandler } from 'react-native';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import { useSelector, useDispatch } from 'react-redux';
+import { useFocusEffect } from '@react-navigation/native';
+import { fetchFunds } from '../../Slices/fundsSlice';
 import FundCard from './FundCard';
 
-const fundsData = [
-    {
-        id: '1',
-        name: 'Alfalah Islamic Money Market Fund',
-        return: '+20.20%',
-        icon: require('../../Images/alfa.png'),
-        returnColor: 'green',
-    },
-    {
-        id: '2',
-        name: 'Meezan Cash Fund',
-        return: '+19.81%',
-        icon: require('../../Images/meezan.png'),
-        returnColor: 'green',
-    },
-    {
-        id: '3',
-        name: 'Al Meezan Mutual Fund',
-        return: '-67.48%',
-        icon: require('../../Images/meezan.png'),
-        returnColor: 'red',
-    },
-    {
-        id: '4',
-        name: 'Al Meezan Mutual Fund',
-        return: '-67.48%',
-        icon: require('../../Images/meezan.png'),
-        returnColor: 'red',
-    },
-    {
-        id: '5',
-        name: 'Alfalah Islamic Money Market Fund',
-        return: '+20.20%',
-        icon: require('../../Images/alfa.png'),
-        returnColor: 'green',
-    },
-    {
-        id: '6',
-        name: 'Alfalah Islamic Money Market Fund',
-        return: '+20.20%',
-        icon: require('../../Images/alfa.png'),
-        returnColor: 'green',
-    },
-    {
-        id: '7',
-        name: 'Al Meezan Mutual Fund',
-        return: '-67.48%',
-        icon: require('../../Images/meezan.png'),
-        returnColor: 'red',
-    },
-];
-
-const MutualFundsScreen = () => {
+const MutualFundsScreen = ({ navigation }) => {
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [filteredFunds, setFilteredFunds] = useState(fundsData);
+    const [filteredFunds, setFilteredFunds] = useState([]); // Initialize as an empty array
 
+    const dispatch = useDispatch();
+    const token = useSelector((state) => state.auth.token); // Assuming you have a token stored in the auth slice
+    const funds = useSelector((state) => state.funds.funds); // Fetching funds from the Redux store
+
+    // Handle keyboard visibility
     useEffect(() => {
         const keyboardDidShowListener = Keyboard.addListener(
             'keyboardDidShow',
@@ -80,13 +36,46 @@ const MutualFundsScreen = () => {
         };
     }, []);
 
+    // Fetch funds when token is available
+    useEffect(() => {
+        if (token) {
+            console.log('Token:', token); // Log the token to check its value
+            dispatch(fetchFunds(token)); // Dispatch the fetchFunds action with the token
+        }
+    }, [dispatch, token]);
+
+    // Update filtered funds whenever the funds list is updated
+    useEffect(() => {
+        setFilteredFunds(funds); // Update filteredFunds with the full list of funds
+        handleSearch(searchQuery); // Apply current search query to the updated list
+    }, [funds]);
+
+    // Handle search functionality
     const handleSearch = (text) => {
         setSearchQuery(text);
-        const filteredData = fundsData.filter(item =>
-            item.name.toLowerCase().includes(text.toLowerCase())
-        );
-        setFilteredFunds(filteredData);
+        if (text) {
+            const filteredData = funds.filter(item =>
+                item.name.toLowerCase().includes(text.toLowerCase())
+            );
+            setFilteredFunds(filteredData);
+        } else {
+            setFilteredFunds(funds); // Reset to full list if search query is empty
+        }
     };
+
+    // Handle back button press
+    useFocusEffect(
+        useCallback(() => {
+            const onBackPress = () => {
+                navigation.navigate('Login'); // Navigate to the login screen
+                return true; // Prevent default back button behavior
+            };
+
+            BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+            return () => BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+        }, [navigation])
+    );
 
     return (
         <View style={{ flex: 1 }}>
@@ -96,10 +85,12 @@ const MutualFundsScreen = () => {
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
             >
                 <View style={styles.container}>
-                    <View style={styles.header}>
-                        <Ionicons name="chevron-back-outline" size={24} color="#6E7191" />
-                        <Text style={styles.headerTitle}>Mutual Funds</Text>
-                    </View>
+                <View style={styles.header}>
+                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                    <Ionicons name="chevron-back-outline" size={24} color="#6E7191" />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Mutual Funds</Text>
+            </View>
                     <View style={styles.searchContainer}>
                         <View style={styles.searchBar}>
                             <Ionicons name="search" size={20} color="#9a9a9a" />
@@ -120,7 +111,7 @@ const MutualFundsScreen = () => {
                     <FlatList
                         data={filteredFunds}
                         renderItem={({ item }) => <FundCard fund={item} />}
-                        keyExtractor={item => item.id}
+                        keyExtractor={item => item.id.toString()}
                         contentContainerStyle={styles.fundsList}
                     />
                 </View>
@@ -172,6 +163,7 @@ const MutualFundsScreen = () => {
 };
 
 const styles = StyleSheet.create({
+    // Add your styles here
     container: {
         flex: 1,
         backgroundColor: '#ffffff',
@@ -228,7 +220,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         marginBottom: 16,
         color: '#000',
-        fontFamily: 'PublicSnas-Medium',
+        fontFamily: 'Public Sans-Medium',
     },
     fundsList: {
         paddingBottom: 80, 
@@ -261,12 +253,12 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     navIcon: {
-        width: 28, // Increase the size to make the icon larger
-        height: 28, // Increase the size to make the icon larger
-        resizeMode: 'contain', // Ensure the image scales correctly within the bounds
+        width: 28, 
+        height: 28, 
+        resizeMode: 'contain', 
     },
     navIconActive: {
-        width: 30, // Slightly larger for the active icon
+        width: 30, 
         height: 30,
         resizeMode: 'contain',
     },
@@ -283,7 +275,7 @@ const styles = StyleSheet.create({
     },
     fab: {
         position: 'absolute',
-        bottom: 40, // Ensures FAB is above the bottom navigation
+        bottom: 40,
         alignSelf: 'center',
         width: 60,
         height: 60,
@@ -296,7 +288,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 4.65,
         elevation: 8,
-        zIndex: 10, // Ensure the FAB is above other elements
+        zIndex: 10,
     },
     curveContainer: {
         position: 'absolute',
@@ -304,7 +296,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         alignItems: 'center',
-        zIndex: 0, // Place this below the FAB
+        zIndex: 0,
     },
     curve: {
         width: 100,
@@ -313,10 +305,10 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 50,
         borderTopRightRadius: 50,
         marginBottom: 0,
-        transform: [{ translateY: 20 }], // Move the curve upwards to align with the FAB
+        transform: [{ translateY: 20 }],
     },
     spacer: {
-        width: 80, // Spacer width to create a gap for the FAB
+        width: 80,
     },
 });
 
