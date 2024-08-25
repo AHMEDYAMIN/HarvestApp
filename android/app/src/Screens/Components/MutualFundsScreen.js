@@ -39,15 +39,15 @@ const MutualFundsScreen = ({ navigation }) => {
     // Fetch funds when token is available
     useEffect(() => {
         if (token) {
-            console.log('Token:', token); // Log the token to check its value
-            dispatch(fetchFunds(token)); // Dispatch the fetchFunds action with the token
+            console.log('Token:', token);
+            dispatch(fetchFunds(token));
         }
     }, [dispatch, token]);
 
     // Update filtered funds whenever the funds list is updated
     useEffect(() => {
-        setFilteredFunds(funds); // Update filteredFunds with the full list of funds
-        handleSearch(searchQuery); // Apply current search query to the updated list
+        setFilteredFunds(funds);
+        handleSearch(searchQuery);
     }, [funds]);
 
     // Handle search functionality
@@ -59,7 +59,7 @@ const MutualFundsScreen = ({ navigation }) => {
             );
             setFilteredFunds(filteredData);
         } else {
-            setFilteredFunds(funds); // Reset to full list if search query is empty
+            setFilteredFunds(funds);
         }
     };
 
@@ -67,8 +67,8 @@ const MutualFundsScreen = ({ navigation }) => {
     useFocusEffect(
         useCallback(() => {
             const onBackPress = () => {
-                navigation.navigate('Login'); // Navigate to the login screen
-                return true; // Prevent default back button behavior
+                navigation.navigate('Login');
+                return true;
             };
 
             BackHandler.addEventListener('hardwareBackPress', onBackPress);
@@ -85,12 +85,15 @@ const MutualFundsScreen = ({ navigation }) => {
                 keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
             >
                 <View style={styles.container}>
-                <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-                    <Ionicons name="chevron-back-outline" size={24} color="#6E7191" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Mutual Funds</Text>
-            </View>
+                    <View style={styles.header}>
+                        <TouchableOpacity onPress={() => {
+                            console.log('Back icon pressed');
+                            navigation.navigate('Login');
+                        }}>
+                            <Ionicons name="chevron-back-outline" size={24} color="#6E7191" />
+                        </TouchableOpacity>
+                        <Text style={styles.headerTitle}>Mutual Funds</Text>
+                    </View>
                     <View style={styles.searchContainer}>
                         <View style={styles.searchBar}>
                             <Ionicons name="search" size={20} color="#9a9a9a" />
@@ -223,7 +226,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Public Sans-Medium',
     },
     fundsList: {
-        paddingBottom: 80, 
+        paddingBottom: 80,
     },
     bottomNavigation: {
         flexDirection: 'row',
@@ -238,8 +241,8 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         paddingHorizontal: 10,
-        borderTopLeftRadius: 20, 
-        borderTopRightRadius: 20, 
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
@@ -253,12 +256,12 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     navIcon: {
-        width: 28, 
-        height: 28, 
-        resizeMode: 'contain', 
+        width: 28,
+        height: 28,
+        resizeMode: 'contain',
     },
     navIconActive: {
-        width: 30, 
+        width: 30,
         height: 30,
         resizeMode: 'contain',
     },

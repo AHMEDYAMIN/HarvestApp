@@ -3,18 +3,18 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingVi
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
 import { useDispatch } from 'react-redux';
-import {loginSuccess} from '../../Slices/authSlice';
+import { loginSuccess } from '../../Slices/authSlice';
 import axios from 'axios';
 import Toast from 'react-native-toast-message';
 
-export default function LoginScreen({ navigation }) {  
+export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [pin, setPin] = useState('');
   const [emailErrorMsg, setEmailErrorMsg] = useState('');
   const [pinErrorMsg, setPinErrorMsg] = useState('');
   const [showPin, setShowPin] = useState(true);
-  
-  const dispatch = useDispatch(); // Initialize the dispatch function
+
+  const dispatch = useDispatch(); 
 
   const handleEmailChange = (masked) => {
     const filteredEmail = masked.replace(/[^a-zA-Z0-9@._-]/g, '');
@@ -51,7 +51,7 @@ export default function LoginScreen({ navigation }) {
       setPinErrorMsg('PIN must be alphanumeric or contain special characters.');
     }
   };
-  
+
 
   const handleLogin = async () => {
     try {
@@ -59,9 +59,9 @@ export default function LoginScreen({ navigation }) {
         email,
         password: pin,
       });
-  
+
       console.log(response.data); // Log the entire response data
-  
+
       if (response.data.access_token) { // Check for access_token instead of token
         dispatch(loginSuccess(response.data.access_token)); // Save the token in Redux
         Toast.show({
@@ -114,17 +114,17 @@ export default function LoginScreen({ navigation }) {
           {emailErrorMsg ? <Text style={styles.errorMsg}>{emailErrorMsg}</Text> : null}
 
           <View style={styles.inputContainer}>
-          <TextInput
-          style={styles.inputWithIcon}
-          placeholder="Login pin"
-          placeholderTextColor="#9a9a9a"
-          secureTextEntry={showPin}
-          value={pin}
-          onChangeText={handlePinChange}
-          keyboardType="default"  // Changed from "numeric" to "default"
-          color="#000"
-        />
-        
+            <TextInput
+              style={styles.inputWithIcon}
+              placeholder="Login pin"
+              placeholderTextColor="#9a9a9a"
+              secureTextEntry={showPin}
+              value={pin}
+              onChangeText={handlePinChange}
+              keyboardType="default"  // Changed from "numeric" to "default"
+              color="#000"
+            />
+
             <TouchableOpacity onPress={() => setShowPin(!showPin)}>
               <Ionicons name={showPin ? "eye-off" : "eye"} size={24} color="#9a9a9a" />
             </TouchableOpacity>
